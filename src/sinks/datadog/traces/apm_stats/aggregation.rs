@@ -182,6 +182,15 @@ impl Aggregator {
 
     /// Iterates over a trace's constituting spans and upon matching conditions it updates statistics (mostly using the top level span).
     pub(crate) fn handle_trace(&mut self, partition_key: &PartitionKey, trace: &TraceEvent) {
+        if let Some(v) = trace.get(event_path!("tags._dd.tags.container")) {
+            tracing::info!(
+            message = "found _dd.tags.container",
+            tags = %v.to_string_lossy()
+        );
+        } else {
+            tracing::info!("_dd.tags.container not found on trace");
+            tracing::info!("FULL TRACE EVENT = {:?}", trace.as_map());
+        }
         // Based on https://github.com/DataDog/datadog-agent/blob/cfa750c7412faa98e87a015f8ee670e5828bbe7f/pkg/trace/stats/concentrator.go#L148-L184
 
         let spans = match trace.get(event_path!("spans")) {
@@ -337,6 +346,7 @@ impl Aggregator {
                     runtime_id: "".to_string(),
                     lang: "".to_string(),
                     tracer_version: "".to_string(),
+                    //  TODO
                     tags: vec![],
                 }
             })
